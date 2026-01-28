@@ -1,0 +1,11 @@
+# Ignorar ambiente virtual e arquivos compilados
+venv/
+__pycache__/
+*.pyc
+build/
+dist/
+*.spec
+
+# Ignorar arquivos de sistema e IDE
+.vscode/
+.DS_Store
