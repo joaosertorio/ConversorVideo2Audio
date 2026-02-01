@@ -5,7 +5,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import pygame
 from moviepy import VideoFileClip, AudioFileClip
-import webbrowser  # NOVO: Para abrir os links de contato
+import webbrowser
 
 # Configuração Global de Tema
 ctk.set_appearance_mode("Dark")
@@ -18,8 +18,8 @@ class App(ctk.CTk):
         # Inicializa o Mixer de Áudio
         pygame.mixer.init()
 
-        # Configuração da Janela
-        self.title("Video2Mp3 Converter v3.4")
+        # Configuração da Janela (Atualizado para v3.5)
+        self.title("Video2Mp3 Converter v3.5")
         self.geometry("950x700")
         
         self.grid_columnconfigure(1, weight=1)
@@ -38,7 +38,6 @@ class App(ctk.CTk):
         self.criar_tela_player()
         self.criar_tela_sobre()
 
-        # Inicia na tela do Conversor
         self.selecionar_frame("conversor")
         self.atualizar_progresso()
 
@@ -142,13 +141,10 @@ class App(ctk.CTk):
     def criar_tela_sobre(self):
         self.frame_sobre = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
         
-        # Título
         ctk.CTkLabel(self.frame_sobre, text="Sobre o Video2Mp3", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=(40, 10))
         
-        # Versão
-        ctk.CTkLabel(self.frame_sobre, text="Versão 3.4 Stable", text_color="gray").pack()
+        ctk.CTkLabel(self.frame_sobre, text="Versão 3.5 Stable", text_color="gray").pack()
 
-        # Texto Inspiracional
         texto_missao = (
             "Este projeto foi inspirado pela espiritualidade em continuar\n"
             "e aprimorar meus estudos. Acreditamos que a tecnologia deve\n"
@@ -158,16 +154,13 @@ class App(ctk.CTk):
         )
         ctk.CTkLabel(self.frame_sobre, text=texto_missao, font=ctk.CTkFont(size=14), justify="center").pack(pady=30)
 
-        # Seção Desenvolvedor
         ctk.CTkLabel(self.frame_sobre, text="Desenvolvido por João Sertório", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(0, 10))
         
-        # Contatos e Links (Clicáveis)
         contatos_frame = ctk.CTkFrame(self.frame_sobre, fg_color="transparent")
         contatos_frame.pack(pady=10)
 
         ctk.CTkLabel(contatos_frame, text="📧 sertorio.joao@gmail.com").pack(pady=5)
         
-        # Botões de Link
         ctk.CTkButton(contatos_frame, text="GitHub: /joaosertorio", 
                       fg_color="#333", hover_color="#000",
                       command=lambda: webbrowser.open("https://github.com/joaosertorio")).pack(pady=5, fill="x")
@@ -249,7 +242,11 @@ class App(ctk.CTk):
                 if nome_pasta in ["", "."]: nome_pasta = os.path.basename(self.pasta_origem)
                 
                 timestamp = datetime.now().strftime("%d%m%y-%H%M%S")
-                nome_saida = f"Ponto {nome_pasta} {timestamp}_{idx}.mp3"
+                
+                # --- ALTERAÇÃO DE NOMECLATURA (GENÉRICA) ---
+                # Antes: f"Ponto {nome_pasta}..."
+                # Agora: f"{nome_pasta} - ..." (Nome da pasta + Hífen + ID)
+                nome_saida = f"{nome_pasta} - {timestamp}_{idx}.mp3"
                 caminho_out = os.path.join(pasta_final, nome_saida)
 
                 self.progressbar_conv.set(idx / total)
@@ -350,6 +347,7 @@ class App(ctk.CTk):
                 self.lbl_tempo.configure(text=f"{self.formatar_tempo(tempo_atual)} / {self.formatar_tempo(self.duracao_atual)}")
                 if tempo_atual >= self.duracao_atual - 1: self.proxima_musica()
         self.after(500, self.atualizar_progresso)
+
 
 if __name__ == "__main__":
     app = App()

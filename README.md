@@ -1,6 +1,6 @@
 # Video2Mp3 Converter
 
-> **Versão:** 3.4 Stable (Gold Master)
+> **Versão:** 3.5 Stable
 > **Desenvolvedor:** João Sertório
 
 ## 📖 Sobre o Projeto
@@ -12,15 +12,16 @@ Este projeto foi **inspirado pela espiritualidade** como forma de aprimorar meus
 
 ## 🚀 Funcionalidades Principais
 
-### 1. Conversão Inteligente
+### 1. Conversão Inteligente e Neutra
 * **Formatos Aceitos:** .MP4, .MKV, .AVI, .MOV, .FLV, .WMV.
 * **Saída de Áudio:** MP3 192kbps (Constant Bitrate) / 44.1kHz Estéreo.
 * **Espelhamento de Pastas:** O software lê subpastas recursivamente e recria a mesma árvore de diretórios no destino.
+* **Nomeação Dinâmica:** Os arquivos convertidos assumem automaticamente o nome da pasta de origem + data/hora, garantindo organização sem prefixos fixos.
 
 ### 2. Player Integrado
-* **Playlist Automática:** Carrega as músicas da pasta de destino.
-* **Controles:** Play, Pause, Próximo, Anterior, Loop.
-* **Gestão:** Opção de limpar playlist ou trocar de pasta facilmente.
+* **Playlist Automática:** Carrega as músicas da pasta de destino assim que a conversão termina.
+* **Controles:** Play, Pause, Próximo, Anterior e Barra de Progresso.
+* **Gestão:** Botões dedicados para limpar a playlist ou selecionar novas pastas de música independentemente da conversão.
 
 ### 3. Interface Moderna
 * Desenvolvido com **CustomTkinter** (Dark Mode nativo).
@@ -47,7 +48,7 @@ Este projeto foi **inspirado pela espiritualidade** como forma de aprimorar meus
 
 ## 🛠️ Instalação (Para Desenvolvedores)
 
-Se você deseja estudar o código-fonte:
+Se você deseja estudar o código-fonte ou contribuir:
 
 ```bash
 # Clone o repositório
@@ -65,6 +66,7 @@ pip install -r requirements.txt
 
 # Execute
 python main.py
+
 
 📬 Contato e Feedback
 Ficarei feliz em receber feedback ou conectar com outros desenvolvedores e estudantes.
