@@ -5,6 +5,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import pygame
 from moviepy import VideoFileClip, AudioFileClip
+import webbrowser  # NOVO: Para abrir os links de contato
 
 # Configuração Global de Tema
 ctk.set_appearance_mode("Dark")
@@ -18,7 +19,7 @@ class App(ctk.CTk):
         pygame.mixer.init()
 
         # Configuração da Janela
-        self.title("Conversor Audio System v3.0 | Pro Edition")
+        self.title("Video2Mp3 Converter v3.4")
         self.geometry("950x700")
         
         self.grid_columnconfigure(1, weight=1)
@@ -27,19 +28,18 @@ class App(ctk.CTk):
         # Variáveis de Estado
         self.pasta_origem = ""
         self.pasta_destino = ""
-        self.playlist_arquivos = []  # Lista de caminhos dos MP3
-        self.index_atual = -1        # Qual música está tocando?
+        self.playlist_arquivos = []
+        self.index_atual = -1
         self.tocando = False
-        self.duracao_atual = 0       # Segundos da música atual
+        self.duracao_atual = 0
 
         self.criar_sidebar()
         self.criar_tela_conversor()
         self.criar_tela_player()
         self.criar_tela_sobre()
 
+        # Inicia na tela do Conversor
         self.selecionar_frame("conversor")
-        
-        # Loop de atualização da barra de progresso (a cada 1 segundo)
         self.atualizar_progresso()
 
     def criar_sidebar(self):
@@ -47,7 +47,7 @@ class App(ctk.CTk):
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
 
-        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="Audio System\nUltimate", font=ctk.CTkFont(size=20, weight="bold"))
+        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="Video2Mp3", font=ctk.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
 
         self.btn_nav_conversor = ctk.CTkButton(self.sidebar_frame, text="Conversor", command=lambda: self.selecionar_frame("conversor"))
@@ -65,23 +65,30 @@ class App(ctk.CTk):
     def criar_tela_conversor(self):
         self.frame_conversor = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
         
-        ctk.CTkLabel(self.frame_conversor, text="Estúdio de Conversão", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=20)
+        ctk.CTkLabel(self.frame_conversor, text="Video2Mp3: Conversor", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=20)
 
         card = ctk.CTkFrame(self.frame_conversor)
         card.pack(fill="x", padx=20, pady=10)
 
-        # Inputs
+        # Passo 1
         ctk.CTkLabel(card, text="1. Origem (Vídeos)", font=ctk.CTkFont(weight="bold")).pack(anchor="w", padx=15, pady=(15,5))
-        self.entry_origem = ctk.CTkEntry(card, placeholder_text="Selecione a pasta...")
-        self.entry_origem.pack(fill="x", padx=15, pady=5)
-        ctk.CTkButton(card, text="Buscar Pasta", command=self.sel_origem, width=100).pack(anchor="e", padx=15, pady=(0,10))
+        frame_origem = ctk.CTkFrame(card, fg_color="transparent")
+        frame_origem.pack(fill="x", padx=15)
+        self.entry_origem = ctk.CTkEntry(frame_origem, placeholder_text="Selecione a pasta...")
+        self.entry_origem.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        ctk.CTkButton(frame_origem, text="Buscar Pasta", command=self.sel_origem, width=100).pack(side="right")
+        ctk.CTkLabel(card, text="Suporta: .MP4, .MKV, .AVI, .MOV, .FLV, .WMV", font=ctk.CTkFont(size=11, slant="italic"), text_color="gray").pack(anchor="w", padx=15, pady=(2, 10))
 
-        ctk.CTkLabel(card, text="2. Destino (MP3)", font=ctk.CTkFont(weight="bold")).pack(anchor="w", padx=15, pady=5)
-        self.entry_destino = ctk.CTkEntry(card, placeholder_text="Selecione a pasta...")
-        self.entry_destino.pack(fill="x", padx=15, pady=5)
-        ctk.CTkButton(card, text="Buscar Pasta", command=self.sel_destino, width=100, fg_color="#E0A800", hover_color="#C69500", text_color="black").pack(anchor="e", padx=15, pady=(0,15))
+        # Passo 2
+        ctk.CTkLabel(card, text="2. Destino (MP3)", font=ctk.CTkFont(weight="bold")).pack(anchor="w", padx=15, pady=(5,5))
+        frame_destino = ctk.CTkFrame(card, fg_color="transparent")
+        frame_destino.pack(fill="x", padx=15)
+        self.entry_destino = ctk.CTkEntry(frame_destino, placeholder_text="Selecione a pasta...")
+        self.entry_destino.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        ctk.CTkButton(frame_destino, text="Buscar Pasta", command=self.sel_destino, width=100, fg_color="#E0A800", hover_color="#C69500", text_color="black").pack(side="right")
+        ctk.CTkLabel(card, text="Saída: MP3 (CBR) | Qualidade: 192kbps (Alta Fidelidade) | 44.1kHz Estéreo", font=ctk.CTkFont(size=11, slant="italic"), text_color="gray").pack(anchor="w", padx=15, pady=(2, 15))
 
-        self.btn_iniciar = ctk.CTkButton(self.frame_conversor, text="INICIAR PROCESSAMENTO", height=50, font=ctk.CTkFont(size=15, weight="bold"), fg_color="#28a745", hover_color="#218838", command=self.iniciar_thread)
+        self.btn_iniciar = ctk.CTkButton(self.frame_conversor, text="INICIAR CONVERSÃO", height=50, font=ctk.CTkFont(size=15, weight="bold"), fg_color="#28a745", hover_color="#218838", command=self.iniciar_thread)
         self.btn_iniciar.pack(fill="x", padx=20, pady=20)
 
         self.label_status = ctk.CTkLabel(self.frame_conversor, text="Pronto para iniciar", text_color="gray")
@@ -97,28 +104,32 @@ class App(ctk.CTk):
     def criar_tela_player(self):
         self.frame_player = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
         
-        ctk.CTkLabel(self.frame_player, text="Player Integrado", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=20)
+        ctk.CTkLabel(self.frame_player, text="Video2Mp3: Player", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=20)
         
-        # Botão Recarregar Playlist
-        ctk.CTkButton(self.frame_player, text="🔄 Atualizar Playlist (Ler Destino)", command=self.carregar_playlist).pack(pady=5)
+        frame_gestao = ctk.CTkFrame(self.frame_player, fg_color="transparent")
+        frame_gestao.pack(fill="x", padx=20)
 
-        # Lista de Músicas (Scrollable)
-        self.scroll_playlist = ctk.CTkScrollableFrame(self.frame_player, label_text="Arquivos na Pasta de Destino")
+        ctk.CTkButton(frame_gestao, text="📂 Selecionar / Trocar Pasta de Músicas", command=self.buscar_pasta_player, fg_color="#17a2b8", hover_color="#138496").pack(fill="x", pady=(0, 5))
+        
+        frame_botoes_lista = ctk.CTkFrame(frame_gestao, fg_color="transparent")
+        frame_botoes_lista.pack(fill="x")
+        
+        ctk.CTkButton(frame_botoes_lista, text="🔄 Atualizar Lista", command=lambda: self.carregar_playlist(self.pasta_destino), width=150).pack(side="left", padx=(0, 5), expand=True, fill="x")
+        ctk.CTkButton(frame_botoes_lista, text="🗑️ Limpar Playlist", command=self.limpar_playlist, width=150, fg_color="#6c757d", hover_color="#5a6268").pack(side="right", padx=(5, 0), expand=True, fill="x")
+
+        self.scroll_playlist = ctk.CTkScrollableFrame(self.frame_player, label_text="Lista de Reprodução")
         self.scroll_playlist.pack(fill="both", expand=True, padx=20, pady=10)
 
-        # Informações da Música
-        self.lbl_musica_atual = ctk.CTkLabel(self.frame_player, text="Nenhuma música selecionada", font=ctk.CTkFont(size=14, weight="bold"))
+        self.lbl_musica_atual = ctk.CTkLabel(self.frame_player, text="...", font=ctk.CTkFont(size=14, weight="bold"))
         self.lbl_musica_atual.pack(pady=(10,0))
         
         self.lbl_tempo = ctk.CTkLabel(self.frame_player, text="00:00 / 00:00", text_color="gray")
         self.lbl_tempo.pack(pady=(0,10))
 
-        # Barra de Progresso do Audio
         self.progresso_audio = ctk.CTkProgressBar(self.frame_player, height=10)
         self.progresso_audio.pack(fill="x", padx=40, pady=5)
         self.progresso_audio.set(0)
 
-        # Controles
         controles = ctk.CTkFrame(self.frame_player, fg_color="transparent")
         controles.pack(pady=20)
         
@@ -130,9 +141,40 @@ class App(ctk.CTk):
 
     def criar_tela_sobre(self):
         self.frame_sobre = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        ctk.CTkLabel(self.frame_sobre, text="Sobre o Projeto", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=40)
-        texto = "Desenvolvido por João Adolfo.\nVersão 3.0 Pro\n\nSoftware gratuito para estudo e\ndesenvolvimento espiritual e técnico."
-        ctk.CTkLabel(self.frame_sobre, text=texto, font=ctk.CTkFont(size=14)).pack()
+        
+        # Título
+        ctk.CTkLabel(self.frame_sobre, text="Sobre o Video2Mp3", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=(40, 10))
+        
+        # Versão
+        ctk.CTkLabel(self.frame_sobre, text="Versão 3.4 Stable", text_color="gray").pack()
+
+        # Texto Inspiracional
+        texto_missao = (
+            "Este projeto foi inspirado pela espiritualidade em continuar\n"
+            "e aprimorar meus estudos. Acreditamos que a tecnologia deve\n"
+            "servir ao propósito maior de organização e aprendizado.\n\n"
+            "Por este motivo, este software é oferecido gratuitamente\n"
+            "para todos os usuários."
+        )
+        ctk.CTkLabel(self.frame_sobre, text=texto_missao, font=ctk.CTkFont(size=14), justify="center").pack(pady=30)
+
+        # Seção Desenvolvedor
+        ctk.CTkLabel(self.frame_sobre, text="Desenvolvido por João Sertório", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(0, 10))
+        
+        # Contatos e Links (Clicáveis)
+        contatos_frame = ctk.CTkFrame(self.frame_sobre, fg_color="transparent")
+        contatos_frame.pack(pady=10)
+
+        ctk.CTkLabel(contatos_frame, text="📧 sertorio.joao@gmail.com").pack(pady=5)
+        
+        # Botões de Link
+        ctk.CTkButton(contatos_frame, text="GitHub: /joaosertorio", 
+                      fg_color="#333", hover_color="#000",
+                      command=lambda: webbrowser.open("https://github.com/joaosertorio")).pack(pady=5, fill="x")
+        
+        ctk.CTkButton(contatos_frame, text="LinkedIn: /in/joão-sertório", 
+                      fg_color="#0077b5", hover_color="#005582",
+                      command=lambda: webbrowser.open("https://www.linkedin.com/in/joão-sertório/")).pack(pady=5, fill="x")
 
     # --- Lógica de Navegação ---
     def selecionar_frame(self, nome):
@@ -144,12 +186,20 @@ class App(ctk.CTk):
         self.btn_nav_player.configure(fg_color=("gray75", "gray25") if nome == "player" else "transparent")
         self.btn_nav_sobre.configure(fg_color=("gray75", "gray25") if nome == "sobre" else "transparent")
 
-        if nome == "conversor": self.frame_conversor.grid(row=0, column=1, sticky="nsew")
+        if nome == "conversor": 
+            self.frame_conversor.grid(row=0, column=1, sticky="nsew")
+            if self.pasta_destino:
+                self.entry_destino.delete(0, "end"); self.entry_destino.insert(0, self.pasta_destino)
+                
         if nome == "player": 
             self.frame_player.grid(row=0, column=1, sticky="nsew")
-            # Se a playlist estiver vazia, tenta carregar
-            if not self.playlist_arquivos and self.pasta_destino:
-                self.carregar_playlist()
+            if self.pasta_destino:
+                if not self.playlist_arquivos:
+                    self.carregar_playlist(self.pasta_destino)
+            else:
+                self.limpar_playlist()
+                ctk.CTkLabel(self.scroll_playlist, text="Nenhuma pasta selecionada.\nUse os botões acima.").pack(pady=20)
+                
         if nome == "sobre": self.frame_sobre.grid(row=0, column=1, sticky="nsew")
 
     # --- Lógica do Conversor ---
@@ -177,8 +227,7 @@ class App(ctk.CTk):
         threading.Thread(target=self.processar_recursivo, daemon=True).start()
 
     def processar_recursivo(self):
-        # ... (Mesma lógica de antes)
-        extensoes = ('.mp4', '.mkv', '.avi')
+        extensoes = ('.mp4', '.mkv', '.avi', '.mov', '.flv', '.wmv')
         arquivos = []
         for root, dirs, files in os.walk(self.pasta_origem):
             for file in files:
@@ -207,7 +256,7 @@ class App(ctk.CTk):
                 self.label_status.configure(text=f"Convertendo: {os.path.basename(arquivo_in)}")
                 
                 video = VideoFileClip(arquivo_in)
-                video.audio.write_audiofile(caminho_out, bitrate="192k", logger=None)
+                video.audio.write_audiofile(caminho_out, bitrate="192k", fps=44100, logger=None)
                 video.close()
                 self.log(f"✅ {nome_saida}")
             except Exception as e:
@@ -216,135 +265,90 @@ class App(ctk.CTk):
         self.label_status.configure(text="Concluído!")
         messagebox.showinfo("Sucesso", "Processamento Finalizado!")
         self.resetar_ui()
-        # Atualiza o player automaticamente
-        self.carregar_playlist()
+        self.carregar_playlist(self.pasta_destino)
 
     def resetar_ui(self):
-        self.btn_iniciar.configure(state="normal", text="INICIAR PROCESSAMENTO")
+        self.btn_iniciar.configure(state="normal", text="INICIAR CONVERSÃO")
         self.progressbar_conv.set(0)
 
-    # --- Lógica do Player (FASE 2) ---
-    def carregar_playlist(self):
-        if not self.pasta_destino:
-            return
+    # --- Lógica do Player ---
+    def buscar_pasta_player(self):
+        p = filedialog.askdirectory(title="Selecione a pasta de músicas")
+        if p:
+            self.pasta_destino = p
+            self.carregar_playlist(p)
 
-        # Limpa visual antigo
-        for widget in self.scroll_playlist.winfo_children():
-            widget.destroy()
-
+    def limpar_playlist(self):
+        self.parar_musica()
         self.playlist_arquivos = []
-        arquivos_temp = []
+        self.index_atual = -1
+        self.lbl_musica_atual.configure(text="Playlist Limpa")
+        for widget in self.scroll_playlist.winfo_children(): widget.destroy()
 
-        # Varre recursivamente buscando MP3
-        for root, dirs, files in os.walk(self.pasta_destino):
+    def carregar_playlist(self, pasta):
+        if not pasta: return
+        self.limpar_playlist()
+        
+        arquivos_temp = []
+        for root, dirs, files in os.walk(pasta):
             for file in files:
                 if file.lower().endswith('.mp3'):
-                    caminho_completo = os.path.join(root, file)
-                    arquivos_temp.append(caminho_completo)
-
+                    arquivos_temp.append(os.path.join(root, file))
+        
         if not arquivos_temp:
-            ctk.CTkLabel(self.scroll_playlist, text="Nenhum MP3 encontrado na pasta de destino.").pack()
+            ctk.CTkLabel(self.scroll_playlist, text="Nenhum MP3 encontrado nesta pasta.").pack(pady=20)
             return
 
         self.playlist_arquivos = sorted(arquivos_temp)
-        
-        # Cria botões para cada música
         for idx, caminho in enumerate(self.playlist_arquivos):
             nome_arquivo = os.path.basename(caminho)
-            btn = ctk.CTkButton(
-                self.scroll_playlist, 
-                text=f"{idx+1}. {nome_arquivo}", 
-                anchor="w",
-                fg_color="transparent",
-                border_width=1,
-                border_color="gray30",
-                command=lambda i=idx: self.tocar_musica(i)
-            )
+            btn = ctk.CTkButton(self.scroll_playlist, text=f"{idx+1}. {nome_arquivo}", anchor="w", fg_color="transparent", border_width=1, border_color="gray30", command=lambda i=idx: self.tocar_musica(i))
             btn.pack(fill="x", padx=5, pady=2)
 
     def tocar_musica(self, index):
         if 0 <= index < len(self.playlist_arquivos):
             self.index_atual = index
             caminho = self.playlist_arquivos[index]
-            
             try:
-                # Carrega e toca
                 pygame.mixer.music.load(caminho)
                 pygame.mixer.music.play()
                 self.tocando = True
-                self.btn_play_pause.configure(text="⏸", fg_color="#E0A800") # Amarelo para Pause
-                
-                # Visual: Atualiza nome e reseta botões da lista
+                self.btn_play_pause.configure(text="⏸", fg_color="#E0A800")
                 self.lbl_musica_atual.configure(text=os.path.basename(caminho))
-                
-                # Pega duração total (usando MoviePy apenas para leitura rápida)
                 try:
                     clip = AudioFileClip(caminho)
                     self.duracao_atual = clip.duration
                     clip.close()
-                except:
-                    self.duracao_atual = 0 # Falha na leitura da duração
-                
-            except Exception as e:
-                print(f"Erro ao tocar: {e}")
+                except: self.duracao_atual = 0
+            except Exception as e: print(f"Erro: {e}")
 
     def toggle_play(self):
         if not self.playlist_arquivos: return
-        
         if self.tocando:
-            pygame.mixer.music.pause()
-            self.tocando = False
-            self.btn_play_pause.configure(text="▶", fg_color="#28a745") # Verde para Play
+            pygame.mixer.music.pause(); self.tocando = False; self.btn_play_pause.configure(text="▶", fg_color="#28a745")
         else:
-            if self.index_atual == -1:
-                self.tocar_musica(0)
-            else:
-                pygame.mixer.music.unpause()
-                self.tocando = True
-                self.btn_play_pause.configure(text="⏸", fg_color="#E0A800")
+            if self.index_atual == -1: self.tocar_musica(0)
+            else: pygame.mixer.music.unpause(); self.tocando = True; self.btn_play_pause.configure(text="⏸", fg_color="#E0A800")
 
     def parar_musica(self):
-        pygame.mixer.music.stop()
-        self.tocando = False
-        self.btn_play_pause.configure(text="▶", fg_color="#28a745")
-        self.progresso_audio.set(0)
-        self.lbl_tempo.configure(text="00:00 / 00:00")
+        pygame.mixer.music.stop(); self.tocando = False; self.btn_play_pause.configure(text="▶", fg_color="#28a745"); self.progresso_audio.set(0); self.lbl_tempo.configure(text="00:00 / 00:00")
 
     def proxima_musica(self):
-        if self.playlist_arquivos:
-            prox = (self.index_atual + 1) % len(self.playlist_arquivos)
-            self.tocar_musica(prox)
+        if self.playlist_arquivos: prox = (self.index_atual + 1) % len(self.playlist_arquivos); self.tocar_musica(prox)
 
     def voltar_musica(self):
-        if self.playlist_arquivos:
-            ant = (self.index_atual - 1) % len(self.playlist_arquivos)
-            self.tocar_musica(ant)
+        if self.playlist_arquivos: ant = (self.index_atual - 1) % len(self.playlist_arquivos); self.tocar_musica(ant)
 
     def formatar_tempo(self, segundos):
-        m = int(segundos // 60)
-        s = int(segundos % 60)
-        return f"{m:02}:{s:02}"
+        m = int(segundos // 60); s = int(segundos % 60); return f"{m:02}:{s:02}"
 
     def atualizar_progresso(self):
-        # Esta função roda a cada 500ms
         if self.tocando and pygame.mixer.music.get_busy():
-            # get_pos retorna milissegundos desde o 'play'
             tempo_atual = pygame.mixer.music.get_pos() / 1000
-            
             if self.duracao_atual > 0:
-                progresso = tempo_atual / self.duracao_atual
-                self.progresso_audio.set(progresso)
-                
-                # Atualiza texto (Ex: 01:20 / 03:45)
-                txt_atual = self.formatar_tempo(tempo_atual)
-                txt_total = self.formatar_tempo(self.duracao_atual)
-                self.lbl_tempo.configure(text=f"{txt_atual} / {txt_total}")
-                
-                # Auto-Next: Se estiver a 1s do fim, pula
-                if tempo_atual >= self.duracao_atual - 1:
-                    self.proxima_musica()
-        
-        # Chama a si mesma novamente em 500ms
+                self.progresso_audio.set(tempo_atual / self.duracao_atual)
+                self.lbl_tempo.configure(text=f"{self.formatar_tempo(tempo_atual)} / {self.formatar_tempo(self.duracao_atual)}")
+                if tempo_atual >= self.duracao_atual - 1: self.proxima_musica()
         self.after(500, self.atualizar_progresso)
 
 if __name__ == "__main__":
